@@ -38,9 +38,14 @@ class MainWindow():
 
         self.root.bind("<Control-o>", self.open_file)
         self.root.bind("<Control-s>", self.save_file)
-        self.root.bind("<Control-c>", self.copy_text)  
-        self.root.bind("<Control-x>", self.cut_text)   
+        self.root.bind("<Control-d>", self.open_folder)
+        self.root.bind("<Control-w>", self.close_tab)
+        self.root.bind("<Control-r>", self.run_current_code)
+        self.root.bind("<Control-c>", self.copy_text)
+        self.root.bind("<Control-x>", self.cut_text)
         self.root.bind("<Control-v>", self.paste_text)
+        self.root.bind("<Alt-F4>", lambda event: self.root.quit())
+
 
     def create_ctk_menu(self):
         """Creates a menu bar using CustomTkinter buttons."""
@@ -52,44 +57,54 @@ class MainWindow():
             width=20, height=20
         )
         file_button.pack(side="left", padx=10)
+        Tooltip(file_button, "Opens file menu (Open, Save, Exit).")
 
         edit_button = ctk.CTkButton(
-        self.menu_frame, text="Edit", command=self.show_edit_menu, fg_color="gray14",
-        width=20, height=20
+            self.menu_frame, text="Edit", command=self.show_edit_menu, fg_color="gray14",
+            width=20, height=20
         )
-        edit_button.pack(side="left", padx=10)
+        edit_button.pack(side="left")
+        Tooltip(edit_button, "Opens edit menu (Copy, Cut, Paste).")
 
         help_button = ctk.CTkButton(
             self.menu_frame, text="Help", command=self.show_help_menu, fg_color="gray14",
             width=20, height=20
         )
-        help_button.pack(side="left")
+        help_button.pack(side="left", padx=10)
+        Tooltip(help_button, "Opens help menu (About/Shortcuts).")
 
     def show_file_menu(self):
         """Shows the file menu options."""
         file_menu = tk.Menu(self.root, tearoff=0, bg="gray14", fg="white")
-        file_menu.add_command(label="Open File", command=lambda: self.open_file(None))
-        file_menu.add_command(label="Save File", command=lambda: self.save_file(None))
-        file_menu.add_command(label="Open Folder", command=self.open_folder)
+        file_menu.add_command(
+            label="Open File", command=lambda: self.open_file(None))
+        file_menu.add_command(
+            label="Save File", command=lambda: self.save_file(None))
+        file_menu.add_command(label="Open Folder",
+                              command=lambda: self.open_folder(None))
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
-        file_menu.tk_popup(self.root.winfo_pointerx(), self.root.winfo_pointery())
+        file_menu.tk_popup(self.root.winfo_pointerx(),
+                           self.root.winfo_pointery())
 
     def show_edit_menu(self):
         """Shows the edit menu options (Copy, Cut, Paste)."""
         edit_menu = tk.Menu(self.root, tearoff=0, bg="gray14", fg="white")
-        edit_menu.add_command(label="Copy", command=self.copy_text)
-        edit_menu.add_command(label="Cut", command=self.cut_text)
-        edit_menu.add_command(label="Paste", command=self.paste_text)
-        edit_menu.tk_popup(self.root.winfo_pointerx(), self.root.winfo_pointery())
-
+        edit_menu.add_command(
+            label="Copy", command=lambda: self.copy_text(None))
+        edit_menu.add_command(label="Cut", command=lambda: self.cut_text(None))
+        edit_menu.add_command(
+            label="Paste", command=lambda: self.paste_text(None))
+        edit_menu.tk_popup(self.root.winfo_pointerx(),
+                           self.root.winfo_pointery())
 
     def show_help_menu(self):
         """Shows the help menu options."""
         help_menu = tk.Menu(self.root, tearoff=0, bg="gray14", fg="white")
         help_menu.add_command(label="About", command=self.show_about)
         help_menu.add_command(label="Shortcuts", command=self.show_shortcuts)
-        help_menu.tk_popup(self.root.winfo_pointerx(), self.root.winfo_pointery())
+        help_menu.tk_popup(self.root.winfo_pointerx(),
+                           self.root.winfo_pointery())
 
     def create_sidebar(self):
         """Creates the file tree view on the left side."""
@@ -100,18 +115,17 @@ class MainWindow():
         style.theme_use("default")
         style.configure(
             "Treeview",
-            background="gray10",   
-            foreground="white",   
-            fieldbackground="gray14", 
-            highlightthickness=0, 
-            rowheight=25      
+            background="gray10",
+            foreground="white",
+            fieldbackground="gray14",
+            highlightthickness=0,
+            rowheight=25
         )
         style.map(
             "Treeview",
-            background=[("selected", "gray30")],  
+            background=[("selected", "gray30")],
             foreground=[("selected", "white")]
         )
-
 
         self.file_tree = ttk.Treeview(self.sidebar, style="Treeview")
         self.file_tree.heading("#0", text="Files", anchor="w")
@@ -169,7 +183,8 @@ class MainWindow():
                 # Recurse into the subdirectory
                 self.populate_file_tree_recursively(abs_path, node)
             else:
-                self.file_tree.insert(parent_node, "end", text=item, values=(abs_path,))
+                self.file_tree.insert(parent_node, "end",
+                                      text=item, values=(abs_path,))
 
     def create_main_area(self):
         """Crea el área principal con un notebook y un botón de ejecución."""
@@ -184,27 +199,27 @@ class MainWindow():
         self.run_button_image = Image.open("assets\\play_arrow.png")
         self.run_button = ctk.CTkButton(
             self.main_area, command=lambda: self.run_current_code(None), width=50,
-            image= ctk.CTkImage(dark_image=self.run_button_image), text=""
+            image=ctk.CTkImage(dark_image=self.run_button_image), text=""
         )
         self.run_button.grid(row=0, column=1, sticky="e")
 
         style = ttk.Style(self.root)
         style.configure(
             "TNotebook",
-            background="gray20",  
-            foreground="white"  
+            background="gray20",
+            foreground="white"
         )
 
         style.configure(
             "TNotebook.Tab",
-            background="gray25", 
-            foreground="white", 
+            background="gray25",
+            foreground="white",
         )
 
         style.map(
             "TNotebook.Tab",
-            background=[("selected", "gray35")], 
-            foreground=[("selected", "white")] 
+            background=[("selected", "gray35")],
+            foreground=[("selected", "white")]
         )
 
         self.line_canvas = tk.Canvas(self.main_area, width=30, bg="gray20")
@@ -216,8 +231,6 @@ class MainWindow():
         self.add_new_tab("Untitled")
 
         self.notebook.bind("<Button-2>", self.close_tab)
-        self.root.bind("<Control-w>", self.close_tab)
-        self.root.bind("<Control-r>", self.run_current_code)
 
     def update_line_numbers(self, event=None):
         """Actualiza los números de línea en el canvas."""
@@ -226,19 +239,19 @@ class MainWindow():
             return
 
         self.line_canvas.delete("all")
-        i = text_widget.index("@0,0") 
+        i = text_widget.index("@0,0")
 
         while True:
             dline_info = text_widget.dlineinfo(i)
-            if dline_info is None: 
+            if dline_info is None:
                 break
 
             x = dline_info[0]
             y = dline_info[1]
             line_number = str(i).split(".")[0]
             self.line_canvas.create_text(
-               x + 10, y + 30, anchor="nw", text=line_number, font=("Cascadia code", 10), fill="white")
-            i = text_widget.index(f"{i}+1line") 
+                x + 10, y + 30, anchor="nw", text=line_number, font=("Cascadia code", 10), fill="white")
+            i = text_widget.index(f"{i}+1line")
 
     def add_new_tab(self, title):
         """Adds a new tab to the notebook."""
@@ -246,7 +259,8 @@ class MainWindow():
         frame.grid_rowconfigure(0, weight=1)
         frame.grid_columnconfigure(0, weight=1)
 
-        text_widget = ctk.CTkTextbox(frame, wrap="none", font=("Cascadia code", 12))
+        text_widget = ctk.CTkTextbox(
+            frame, wrap="none", font=("Cascadia code", 12))
         text_widget.grid(row=0, column=0, sticky="nswe")
 
         text_widget.bind("<KeyRelease>", lambda e: self.update_line_numbers(e))
@@ -282,7 +296,6 @@ class MainWindow():
                     return widget
         return None
 
-
     def run_current_code(self, event=None):
         """Runs the Python code from the current tab."""
         text_widget = self.get_current_text_widget()
@@ -315,9 +328,11 @@ class MainWindow():
         self.console_frame.grid_columnconfigure(0, weight=1)
 
         style = ttk.Style()
-        style.configure("CustomNotebook.TNotebook", background="gray14", foreground="white")
+        style.configure("CustomNotebook.TNotebook",
+                        background="gray14", foreground="white")
 
-        self.console_notebook = ttk.Notebook(self.console_frame, style="CustomNotebook.TNotebook")
+        self.console_notebook = ttk.Notebook(
+            self.console_frame, style="CustomNotebook.TNotebook")
         self.console_notebook.grid(row=0, column=0, sticky="nswe")
 
         console_tab = ttk.Frame(self.console_notebook)
@@ -331,7 +346,8 @@ class MainWindow():
         self.console_output.tag_configure("output", foreground="green")
         self.console_output.tag_configure("error", foreground="red")
 
-        scrollbar = ttk.Scrollbar(console_tab, orient="vertical", command=self.console_output.yview)
+        scrollbar = ttk.Scrollbar(
+            console_tab, orient="vertical", command=self.console_output.yview)
         self.console_output.configure(yscrollcommand=scrollbar.set)
         scrollbar.grid(row=0, column=1, sticky="ns")
 
@@ -354,14 +370,13 @@ class MainWindow():
                 if isinstance(widget, ctk.CTkTextbox):
                     widget.insert("1.0", content)
 
-
-    def open_folder(self):
+    def open_folder(self, event=None):
         """Open a folder and display its contents in the file tree."""
-        folder_path = filedialog.askdirectory() 
+        folder_path = filedialog.askdirectory()
         if folder_path:
             for item in self.file_tree.get_children():
                 self.file_tree.delete(item)
-            
+
             self.populate_file_tree(folder_path)
 
     def save_file(self, event=None):
@@ -373,56 +388,58 @@ class MainWindow():
         text_widget = self.get_current_text_widget()
         if not text_widget:
             return
-        
+
         file_path = getattr(text_widget, "file_path", None)
 
-        if file_path: 
+        if file_path:
             with open(file_path, 'w', encoding="utf-8") as file:
                 file.write(text_widget.get("1.0", "end-1c"))
             self.console_output.insert(
                 "end", f"File saved: {file_path}\n", "output")
             self.update_file_tree(os.path.dirname(
-                file_path))  
+                file_path))
 
-        else:  
+        else:
             file_path = filedialog.asksaveasfilename(defaultextension=".py", filetypes=[
                                                      ("Python Files", "*.py"), ("All Files", "*.*")])
             if file_path:
                 with open(file_path, 'w', encoding="utf-8") as file:
                     file.write(text_widget.get("1.0", "end-1c"))
-                text_widget.file_path = file_path  
+                text_widget.file_path = file_path
                 self.console_output.insert(
                     "end", f"File saved: {file_path}\n", "output")
                 self.update_file_tree(os.path.dirname(
-                    file_path))  
-                
+                    file_path))
+
     def update_file_tree(self, path):
         """Update the file tree to reflect changes after saving a file."""
         for item in self.file_tree.get_children():
             self.file_tree.delete(item)
 
         self.populate_file_tree(path)
-                
-    def copy_text(self):
+
+    def copy_text(self, event=None):
         """Copy the selected text to the clipboard."""
         text_widget = self.get_current_text_widget()
         if text_widget:
-            selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ''
+            selected_text = text_widget.get(
+                tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ''
             if selected_text:
                 self.root.clipboard_clear()
                 self.root.clipboard_append(selected_text)
 
-    def cut_text(self):
+    def cut_text(self, event=None):
         """Cut the selected text to the clipboard."""
         text_widget = self.get_current_text_widget()
         if text_widget:
-            selected_text = text_widget.get(tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ''
+            selected_text = text_widget.get(
+                tk.SEL_FIRST, tk.SEL_LAST) if text_widget.tag_ranges(tk.SEL) else ''
             if selected_text:
                 self.root.clipboard_clear()
                 self.root.clipboard_append(selected_text)
                 text_widget.delete(tk.SEL_FIRST, tk.SEL_LAST)
 
-    def paste_text(self):
+    def paste_text(self, event=None):
         """Paste the text from the clipboard into the current text widget."""
         text_widget = self.get_current_text_widget()
         if text_widget:
@@ -431,7 +448,7 @@ class MainWindow():
 
     def show_about(self):
         """Show information about the application."""
-        tk.messagebox.showinfo("About", "PySic IDE\nVersion 1.0")
+        messagebox.showinfo("About", "PySic IDE Version 1.0")
 
     def show_shortcuts(self):
         """Muestra los atajos de teclado y ratón en un messagebox."""
@@ -440,6 +457,7 @@ class MainWindow():
 
         - Open file: Ctrl + O
         - Save file: Ctrl + S
+        - Open folder: Ctrl + Shift + O
         - Run code: Ctrl + r
         - Close tab: Ctrl + W
         - Copy: Ctrl + c
@@ -450,5 +468,43 @@ class MainWindow():
 
         - Double click on file (Treeview): Open file
         - Mouse wheel click on tab: Close tab
+
+        Exit:
+        
+        - Close window: Alt + F4
         """
         messagebox.showinfo("Shortcuts", shortcuts_text)
+
+
+class Tooltip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.tooltip_window = None
+
+        self.widget.bind("<Enter>", self.show_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+
+    def show_tooltip(self, event=None):
+        """Muestra el tooltip cerca del widget."""
+        x, y, cx, cy = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+
+        # Crear la ventana del tooltip
+        self.tooltip_window = tk.Toplevel(self.widget)
+        self.tooltip_window.wm_overrideredirect(
+            True)
+        self.tooltip_window.wm_geometry(f"+{x}+{y}")
+
+        label = tk.Label(
+            self.tooltip_window, text=self.text, background="yellow",
+            relief="solid", borderwidth=1, font=("Consolas", 10)
+        )
+        label.pack(ipadx=2, ipady=1)
+
+    def hide_tooltip(self, event=None):
+        """Oculta el tooltip."""
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
